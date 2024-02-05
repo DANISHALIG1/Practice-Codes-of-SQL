@@ -1,0 +1,156 @@
+USE DATABASE DANISH_DATABASE;
+
+CREATE OR REPLACE TABLE COW_1 ( CNUMBER_1 INT, CBREED VARCHAR (20));
+
+INSERT INTO COW_1 VALUES (1, 'Holstein'),
+                         (2, 'Guernsey'),
+                         (3, 'Angus');
+
+SELECT * FROM COW_1;
+
+CREATE OR REPLACE TABLE COW_2 ( CNUMBER_2 INT, BREED VARCHAR (20));
+
+INSERT INTO COW_2 VALUES (2, 'Jearsey'),
+                         (3, 'Brown Swiss'),
+                         (4, 'Ayrshire');
+
+SELECT * FROM COW_2;
+
+------------------------------------------------------JOINS----------------------------------------------------------------------------------
+
+---INNER JOIN-----
+
+SELECT X.* , BREED
+  FROM COW_1 AS X
+  INNER JOIN COW_2 AS Y ON X.CNUMBER_1=Y.CNUMBER_2;
+
+--LEFT OUTER JOIN
+
+SELECT X.* , BREED
+  FROM COW_1 AS X
+  LEFT OUTER JOIN COW_2 AS Y ON X.CNUMBER_1=Y.CNUMBER_2;
+
+
+CREATE OR REPLACE TABLE DM_OWNER
+ ( OwnerID INTEGER NOT NULL PRIMARY KEY ,
+   Name VARCHAR2(20),
+   Surname STRING,
+   StreetAddress VARCHAR2(50),
+   City STRING,
+   State CHAR(4),
+   StateFull STRING,
+   ZipCode INTEGER );
+
+SELECT * FROM DM_OWNER;
+
+CREATE OR REPLACE TABLE DM_PETS
+  ( PetID VARCHAR(10) NOT NULL PRIMARY KEY,
+    Name VARCHAR(20),
+    Kind STRING,
+    Gender CHAR(7),
+    Age INTEGER,
+    OwnerID INTEGER NOT NULL REFERENCES DM_OWNER );
+
+SELECT * FROM DM_PETS;
+
+-------------------------------------------------INNER JOIN-------------------------------------------------------------------------
+CREATE OR REPLACE TABLE DM_OWNER_PETS AS
+SELECT O.*,PetID,P.Name AS Pet_Name,Kind,Gender,Age
+FROM DM_OWNER AS O 
+INNER JOIN DM_PETS AS P ON O.OwnerID = P.OwnerID;
+  
+SELECT * FROM DM_OWNER_PETS;
+
+-------------------------------------------------LEFT OUTER JOIN-----------------------------------------------------------------------
+--LEFT TABLE SHOULD BE THAT WHICH HAS MAX. RECORDS AND THE COULMN WHICH DIDNT MATCH WITH OTHER TABLE WILL GET NULL
+
+CREATE OR REPLACE TABLE DM_OWNER_PETS AS
+SELECT O.*,PetID,P.Name AS Pet_Name,Kind,Gender,Age
+FROM DM_OWNER AS O 
+LEFT OUTER JOIN DM_PETS AS P ON O.OwnerID = P.OwnerID;
+  
+SELECT * FROM DM_OWNER_PETS;
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE TABLE DM_BROKERS 
+( BrokerID INT, BrokerCode VARCHAR (40), BrokerFullName VARCHAR (40), DistributionNetwork VARCHAR (20), DistributionChannel VARCHAR(30),CommissionScheme VARCHAR (30));
+
+SELECT DISTINCT * FROM DM_BROKERS;--707 ROWS
+--------------------------------------------------------------------
+CREATE OR REPLACE TABLE DM_PRODUCTS
+( ProductID INT, ProductCategory VARCHAR (40), ProductSubCategory VARCHAR (40), Product VARCHAR (20) );
+
+SELECT DISTINCT * FROM DM_PRODUCTS;--77 ROWS
+--------------------------------------------------------------------
+CREATE OR REPLACE TABLE DM_REGIONS
+( ID INT, Name VARCHAR(40), Country VARCHAR(150), State_code VARCHAR(10), State VARCHAR(20), Type VARCHAR(50), Latitude NUMBER(10,2), Longitude NUMBER(10,2), Area_code INT, Population INT, Households INT, Median_income INT, Land_area INT, Water_area INT, Time_zone VARCHAR(40) );
+
+SELECT DISTINCT * FROM DM_REGIONS;--993 ROWS
+--------------------------------------------------------------------
+CREATE OR REPLACE TABLE DM_CUSTOMERS
+( CustomerID INT, LastName VARCHAR (30), FirstName VARCHAR (30), BirthDate DATE, Gender VARCHAR (30), ParticipantType VARCHAR (30), RegionID INT, MaritalStatus VARCHAR (30) );
+
+SELECT DISTINCT * FROM DM_CUSTOMERS; ---12.3K ROWS
+--------------------------------------------------------------------
+CREATE OR REPLACE TABLE DM_STATE_REGIONS
+( State_Code VARCHAR (8), State VARCHAR (30), Region VARCHAR (30) );
+
+SELECT DISTINCT * FROM DM_STATE_REGIONS;--48 ROWS
+--------------------------------------------------------------------
+CREATE OR REPLACE TABLE DM_PRIORITIES
+( ID INT, Description_Proirities VARCHAR (30) );
+
+SELECT DISTINCT * FROM DM_PRIORITIES;--2 ROWS
+--------------------------------------------------------------------
+CREATE OR REPLACE TABLE DM_STATUSES
+( ID INT, Description_statuses VARCHAR (30) );
+
+SELECT DISTINCT * FROM DM_STATUSES;--7 ROWS
+--------------------------------------------------------------------
+CREATE OR REPLACE TABLE DM_CATEGORIES
+( ID INT, Description_Categories VARCHAR (100), Active INT );
+
+SELECT DISTINCT * FROM DM_CATEGORIES;--56 ROWS
+--------------------------------------------------------------------
+CREATE OR REPLACE TABLE DM_SOURCES
+( ID INT, Description_Sources VARCHAR (30) );
+
+SELECT DISTINCT * FROM DM_SOURCES;--9 ROWS
+--------------------------------------------------------------------
+CREATE OR REPLACE TABLE DM_TYPES
+( ID INT, Description_Types VARCHAR (30) );
+
+SELECT DISTINCT * FROM DM_TYPES;--10 ROWS
+--------------------------------------------------------------------
+CREATE OR REPLACE TABLE DM_COMPLAINS_DATA
+( ComplaintID INT, ComplainDate VARCHAR(10), CompletionDate VARCHAR(10), CustomerID INT, BrokerID INT, ProductID INT, ComplainPriorityID INT, ComplainTypeID INT, ComplainSourceID INT, ComplainCategoryID INT, ComplainStatusID INT, AdministratorID VARCHAR(40), ClientSatisfaction VARCHAR (10), ExpectedReimbursement INT );
+
+SELECT DISTINCT * FROM DM_COMPLAINS_DATA;--13.8k ROWS
+--------------------------------------------------------------------
+CREATE OR REPLACE TABLE DM_STATUS_HISTORY_DATA
+( ID INT, ComplaintID INT, ComplaintStatusID INT, StatusDate DATE );
+
+SELECT DISTINCT * FROM DM_STATUS_HISTORY_DATA;--11.6K ROWS
+--------------------------------------------------------------------LEFT OUTER JOIN
+
+CREATE OR REPLACE TABLE DM_CUSTOMERS_MASTER AS
+SELECT COM.ComplaintID, COM.ComplainDate, COM.CompletionDate, CUS.LastName, CUS.FIRSTNAME, CUS.GENDER, CUS.BIRTHDATE, BR.BROKERFULLNAME, 
+BR.COMMISSIONSCHEME, CAT.Description_Categories, SR.REGION, PRO.PRODUCT, PRO.PRODUCTCATEGORY, TY.DESCRIPTION_TYPES, 
+SRS.DESCRIPTION_SOURCES, ST.DESCRIPTION_STATUSES, PR.DESCRIPTION_PROIRITIES
+FROM DM_COMPLAINS_DATA COM
+LEFT OUTER JOIN DM_CUSTOMERS CUS ON COM.CustomerID=CUS.CustomerID
+LEFT OUTER JOIN DM_STATUS_HISTORY_DATA SH ON COM.ComplaintID=SH.ComplaintID
+LEFT OUTER JOIN DM_REGIONS REG ON CUS.RegionID=REG.ID
+LEFT OUTER JOIN DM_STATE_REGIONS SR ON REG.State_code=SR.State_Code
+LEFT OUTER JOIN DM_BROKERS BR ON COM.BrokerID=BR.BrokerID
+LEFT OUTER JOIN DM_CATEGORIES CAT ON COM.ComplainCategoryID=CAT.ID
+LEFT OUTER JOIN DM_PRODUCTS PRO ON COM.ProductID=PRO.ProductID
+LEFT OUTER JOIN DM_TYPES TY ON COM.ComplainTypeID=TY.ID
+LEFT OUTER JOIN DM_SOURCES SRS ON COM.ComplainSourceID=SRS.ID
+LEFT OUTER JOIN DM_STATUSES ST ON COM.ComplainStatusID=ST.ID
+LEFT OUTER JOIN DM_PRIORITIES PR ON COM.ComplainPriorityID=PR.ID;
+
+DESCRIBE TABLE DM_CUSTOMERS_MASTER;
+SELECT * FROM DM_CUSTOMERS_MASTER;
