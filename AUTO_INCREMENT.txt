@@ -1,0 +1,147 @@
+USE DATABASE DANISH_DATABASE;
+
+--1 USING AUTOINCREMET OR IDENTITY AS A DEFAULT VALUE.
+---first we want to create a simple table to which we want to add an autoincemented value
+
+CREATE OR REPLACE TABLE DM_COLORS AS
+SELECT NAME FROM ( VALUES ('BLACK'), ('RED'), ('GREEN'), ('BLUE'),('WHITE')) COLORS(NAME);
+
+DESCRIBE TABLE DM_COLORS;
+SELECT * FROM DM_COLORS;
+
+---Next we have to create a new table with the same structure as the existing table and add identity column.
+CREATE OR REPLACE TABLE DM_COLORS_SAMPLE LIKE DM_COLORS;
+
+SELECT * FROM DM_COLORS_SAMPLE;
+
+ALTER TABLE DM_COLORS_SAMPLE
+ADD COLUMN ID INT IDENTITY (1,1);---default value is 1 and it will increment by 1
+
+DESCRIBE TABLE DM_COLORS_SAMPLE;
+
+INSERT INTO DM_COLORS_SAMPLE(NAME)
+SELECT NAME FROM DM_COLORS;
+
+SELECT * FROM DM_COLORS_SAMPLE;
+
+--Method-2 Using SEQUENCE
+--generating sequece
+
+CREATE OR REPLACE SEQUENCE DM_SEQ
+START = 1
+INCREMENT = 2
+COMMENT = 'this seq will be used to generate employeeIDs';
+
+--Let's use the Snowflake sample data to see why we cannot just alter the existing table 
+--FIRST STEP
+CREATE OR REPLACE TABLE IDENTITY_COLOUMN_EXAMPLE LIKE SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.CUSTOMER;
+
+--SECOND STEP
+CREATE OR REPLACE SEQUENCE DM_SEQ
+START = 1
+INCREMENT = 2
+COMMENT = 'this seq will be used to generate employeeIDs';
+
+DESCRIBE SEQUENCE DM_SEQ;
+
+--THIRD STEP
+ALTER TABLE IDENTITY_COLOUMN_EXAMPLE
+ADD COLUMN ID INT  IDENTITY (1,2);
+
+--FORTH STEP
+INSERT INTO IDENTITY_COLOUMN_EXAMPLE
+SELECT*, ROW_NUMBER() OVER (ORDER BY NULL)
+FROM SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.CUSTOMER;
+
+SELECT * FROM IDENTITY_COLOUMN_EXAMPLE ORDER BY ID;
+
+INSERT INTO IDENTITY_COLOUMN_EXAMPLE (C_CUSTKEY, C_NAME, C_ADDRESS, C_NATIONKEY, C_PHONE, C_ACCTBAL, C_MKTSEGMENT, C_COMMENT)
+VALUES (21324, 'Customer#12345', 'qwjnjsn', 9, 19-303-303-2011, 999.99, 'kasnihwd', 'dschbtewceb' );
+
+SELECT * FROM IDENTITY_COLOUMN_EXAMPLE ORDER BY ID;
+
+---it giver the wrong value as id becomes duplicate so to avoid this we have to use seq
+--because identity column counter was never triggered
+
+/* So, in this case we have to use seq
+we will essentialy recreating the functionaity
+*/
+
+--first we create a Seq that start at 1 and increament by 1 
+
+CREATE OR REPLACE SEQUENCE Seq1 START = 1 INCREMENT = 1;
+
+DESCRIBE SEQUENCE Seq1;
+
+CREATE OR REPLACE SEQUENCE Seq2 START = 100 INCREMENT = 1;
+DESCRIBE SEQUENCE Seq2;
+
+--NEXT, We will recreate a table and add a column id with the nextval of seq1 sequence as the default
+CREATE OR REPLACE TABLE IDENTITY_COLOUMN_EXAMPLE LIKE SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.CUSTOMER;
+
+ALTER TABLE IDENTITY_COLOUMN_EXAMPLE ADD COLUMN ID INT  DEFAULT Seq1.NEXTVAL;
+
+describe sequence seq1;
+
+ALTER TABLE IDENTITY_COLOUMN_EXAMPLE MODIFY COLUMN ID INT DEFAULT Seq2.NEXTVAL;
+
+INSERT INTO IDENTITY_COLOUMN_EXAMPLE
+SELECT*, Seq1.NEXTVAL
+FROM SNOWFLAKE_SAMPLE_DATA.TPCH_SF1.CUSTOMER;
+
+INSERT INTO IDENTITY_COLOUMN_EXAMPLE (C_CUSTKEY, C_NAME, C_ADDRESS, C_NATIONKEY, C_PHONE, C_ACCTBAL, C_MKTSEGMENT, C_COMMENT)
+VALUES (21324, 'Customer#12345', 'qwjnjsn', 9, 19-303-303-2011, 999.99, 'kasnihwd', 'dschbtewceb' );
+
+SELECT * FROM IDENTITY_COLOUMN_EXAMPLE ORDER BY ID;
+
+--------------------------------------------------------------------------------------------------------------------------
+
+CREATE OR REPLACE TABLE DM_Airlines (NAME VARCHAR (90) );
+
+ALTER TABLE IDENTITY_COLOUMN_EXAMPLE
+ADD COLUMN ID_air INT  IDENTITY (1,2);
+
+DESCRIBE TABLE DM_Airlines;
+                                                 
+INSERT INTO DM_Airlines (NAME) VALUES ('UNITED AIRLINES');
+INSERT INTO DM_Airlines (NAME) VALUES ('AIR INDIA');
+INSERT INTO DM_Airlines (NAME) VALUES ('INDIGO');
+INSERT INTO DM_Airlines (NAME) VALUES ('VISTARA');
+INSERT INTO DM_Airlines (NAME) VALUES ('SPICE JET');
+INSERT INTO DM_Airlines (NAME) VALUES ('GO AIR');
+INSERT INTO DM_Airlines (NAME) VALUES ('AKASHA AIR');
+INSERT INTO DM_Airlines (NAME) VALUES ('BRITISH AIRWAYS');
+
+INSERT INTO DM_Airlines VALUES (200, 'LUFTHANSA');
+INSERT INTO DM_Airlines (name) VALUES ('MALAY AIRWAYS');
+
+INSERT INTO DM_Airlines VALUES (150, 'AIR FRANCE'); -- id 150 inserted (IT GIVES ERROR IN SNOWFLAKE)
+INSERT INTO DM_Airlines (name) VALUES ('KLM'); -- id 202 is assigned
+
+SELECT * FROM DM_Airlines;
+
+INSERT IGNORE INTO DM_Airlines VALUES
+
+(150, 'North Air'), 
+(0, 'Emirates'), -- id 203 is assigned
+(0, 'Qantas'); -- id 204
+-- this row will be skipped as ID 150 already exists, and IGNORE option
+
+SELECT LAST_INSERT_ID();
+-- Returns: 204
+
+ALTER TABLE DM_Airlines AUTO_INCREMENT = 1;
+INSERT INTO DM_Airlines (name) VALUES ('US Airways'); -- id 205 is assigned
+
+## FOR DELETION 
+SET SQL_SAFE_UPDATES = 0;
+DELETE FROM DM_Airlines;
+INSERT INTO DM_Airlines (name) VALUES ('United'); -- id 206 is assigned (ALWAYS TAKE THE LAST MAXIMUM ID)
+
+## TO UPDATE THE INCREMENT
+DELETE FROM DM_Airlines;
+ALTER TABLE DM_Airlines AUTO_INCREMENT = 1;
+INSERT INTO DM_Airlines (name) VALUES ('US Airways'); --- ID INCREMENT VALUE WILL CHANGES TO 1
+SELECT LAST_INSERT_ID ();
+
+SELECT * FROM DM_Airlines;
