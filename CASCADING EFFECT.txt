@@ -1,0 +1,65 @@
+DROP DATABASE IF EXISTS CASCADEING;
+CREATE DATABASE CASCADEING;
+USE CASCADEING;
+
+DROP TABLE DM_Employee;
+DROP TABLE DM_Payment; 
+
+CREATE TABLE DM_Employee
+                   ( Emp_id int NOT NULL,
+					 Name varchar(40) NOT NULL,
+					 Birthdate date NOT NULL,
+                     Gender varchar(10) NOT NULL,
+                     Hire_date date NOT NULL,
+    PRIMARY KEY (emp_id));
+    
+INSERT INTO DM_Employee (Emp_id, Name, Birthdate, Gender, Hire_date) VALUE
+                 (101, 'Bryan', '1988-08-12', 'M', '2015-08-26'),
+				 (102, 'Joseph', '1978-05-12', 'M', '2014-10-21'),
+				 (103, 'Mike', '1984-10-13', 'M', '2017-10-28'),
+				 (104, 'Daren', '1979-04-11', 'M', '2006-11-01'), 
+				 (105, 'Marie', '1990-02-11', 'F', '2018-10-12'); 
+                 
+SELECT * FROM DM_Employee;
+
+
+CREATE TABLE DM_Payment 
+                   ( Payment_id int PRIMARY KEY NOT NULL,
+                     Emp_id int NOT NULL,
+                     Amount float NOT NULL,
+                     Payment_date date NOT NULL,
+                     FOREIGN KEY (emp_id) REFERENCES DM_Employee (emp_id) ON DELETE CASCADE ON UPDATE CASCADE ); 
+                     
+INSERT INTO DM_Payment (payment_id, emp_id, amount, payment_date) VALUES
+                 (301, 101, 1200, '2015-09-15'),
+                 (302, 101, 1200, '2015-09-30'),
+                 (303, 101, 1500, '2015-10-15'),
+                 (304, 101, 1500, '2015-10-30'),
+                 (306, 102, 1800, '2015-09-30'); 
+                 
+SELECT * FROM DM_Payment;
+
+CREATE TABLE IF NOT EXISTS DM_EMP_PAY_CASCADE
+SELECT EMP.Emp_id, Name, Birthdate, Gender, Amount, Payment_id, Payment_date
+FROM DM_Employee EMP
+LEFT OUTER JOIN DM_Payment PAY ON EMP.Emp_id=PAY.Emp_id;
+
+SELECT DISTINCT * FROM DM_EMP_PAY_CASCADE;
+
+-- ON UPDATE CASCADE
+-- DELETING RECORD FROM PARENT TABLE IT GET DELETED FROM CHILD TABLE
+DELETE FROM DM_Employee WHERE Emp_id=102 ;
+
+-- To find the affected table by ON DELETE CASCADE action
+USE CASCADEING;
+USE information_schema;
+SELECT table_name FROM referential_constraints
+   WHERE constraint_schema = 'CASCADEING'
+   AND referenced_table_name = 'DM_Employee'
+   AND delete_rule = 'CASCADE'; 
+   
+-- ON UPDATE CASCADE
+USE CASCADEING;
+-- ALTER TABLE Payment ADD CONSTRAINT `payment_fk` FOREIGN KEY(emp_id) REFERENCES Employee (emp_id) ON UPDATE CASCADE; 
+UPDATE DM_Employee SET emp_id = 109 WHERE emp_id = 101;
+
