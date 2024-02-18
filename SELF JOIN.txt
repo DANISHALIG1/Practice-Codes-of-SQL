@@ -1,0 +1,83 @@
+CREATE DATABASE JOINS;
+USE JOINS;
+
+CREATE TABLE DM_STUDENT 
+                       ( Student_ID INT,
+                         Name Varchar (30),
+                         Course_ID INT,
+                         Duration INT );
+
+INSERT INTO DM_STUDENT VALUES
+                             (1, 'Adam', 1, 3),
+                             (2, 'Peter', 2, 4),
+                             (1, 'Adam', 2, 4),
+                             (3, 'Brian', 3, 2),
+                             (2, 'Shane', 3, 5);
+
+SELECT * FROM DM_STUDENT;
+
+SELECT DISTINCT S1.Student_ID, S1.Name 
+FROM DM_STUDENT AS S1, DM_STUDENT S2
+WHERE S1.Student_ID=S2.Student_ID
+AND S1.Course_ID <> S2.Course_ID;
+
+DROP TABLE Person;
+CREATE TABLE Person
+( PersonID INT NOT NULL PRIMARY KEY,
+  LastName VARCHAR (20) NOT NULL,
+  FirstName VARCHAR (20),
+  ReportsTo INT,
+  Title VARCHAR (100), 
+  Salary DECIMAL) ;
+  
+INSERT INTO Person VALUES (1, 'Malik', 'Danish', 8, 'Analyst', 60000),
+                          (2, 'Khan', 'Adil', 9, 'Analyst', 60000),
+                          (8, 'Ahlawat', 'Aman', 10, 'TeamLeader', 90000),
+                          (3, 'Yadav', 'Nitish', 9, 'Analyst', 60000),
+                          (9, 'Warsi', 'Gufran', 10, 'TeamLeader', 90000),
+                          (10, 'Ahmad', 'Tanveer', 12, 'Manager', 150000),
+                          (11, 'Cough', 'Rupak', 12, 'Manager', 150000),
+                          (12, 'Saluja', 'Mehak', 20, 'SR.Manager', 250000),
+                          (20, 'Sudan', 'Parul', 100, 'VP', 10000000),
+                          (100, 'Delaporte', 'Theirry', 111, 'CEO', 40000000);
+                          
+SELECT * FROM Person;
+
+
+SELECT DISTINCT P1.PersonID, (CONCAT(P1.FirstName, ' ', P1.LastName)) AS Person_FULL_Name, P2.ReportsTo, P2.Title
+FROM Person AS P1, Person AS P2
+WHERE P1.PersonID<>P2.PersonID
+AND P1.ReportsTo = P2.ReportsTo
+ORDER BY Person_FULL_Name;
+
+-- LIST OF ALL THE REPORTEE AND NO. OF EMPLOYEE REPORT TO THEM
+SELECT DISTINCT P2.ReportsTo, COUNT(DISTINCT P1.PersonID) AS TOTAL_emp
+FROM Person AS P1, Person AS P2
+WHERE P1.PersonID<>P2.PersonID
+AND P1.ReportsTo = P2.ReportsTo
+GROUP BY ReportsTo
+ORDER BY ReportsTo;
+
+-- LIST OF ALL THE REPORTEE AND NO. OF EMPLOYEE REPORT TO THEM
+SELECT DISTINCT  CONCAT(A.FirstName, ' ', A.LastName) AS MANAGER, count(CONCAT(B.FirstName, ' ', B.LastName)) AS EMPLOYEE
+FROM Person B
+LEFT OUTER JOIN PERSON A ON A.PersonID=B.ReportsTo
+GROUP BY 1
+ORDER BY 1; 
+
+-- LIST OF ALL MANAGERS AND EMPLOYEE REPORT TO THEM
+SELECT DISTINCT  CONCAT(B.FirstName, ' ', B.LastName) AS EMPLOYEE, CONCAT(A.FirstName, ' ', A.LastName) AS MANAGER
+FROM Person B
+INNER JOIN PERSON A ON A.PersonID=B.ReportsTo
+ORDER BY EMPLOYEE;
+
+-- LIST OF ALL EMPLOYEES AND THERE MANAGERS IF EXISTS
+SELECT DISTINCT  CONCAT(B.FirstName, ' ', B.LastName) AS EMPLOYEE, CONCAT(A.FirstName, ' ', A.LastName) AS MANAGER
+FROM Person B
+LEFT OUTER JOIN PERSON A ON A.PersonID=B.ReportsTo
+ORDER BY EMPLOYEE;
+
+-- SUCCESSIVE ROWS SALARY COMPARISON
+SELECT DISTINCT P1.PersonID, (CONCAT(P1.FirstName, ' ', P1.LastName)) AS EMP_Name, P1.Salary
+FROM Person AS P1, Person AS P2
+WHERE P1.Salary<P2.Salary;
