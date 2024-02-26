@@ -1,0 +1,48 @@
+USE DANISH_DATABASE;
+
+DROP TABLE IF EXISTS DANISH_IPL;
+CREATE OR REPLACE TABLE DANISH_IPL
+                       (SID INT NOT NULL PRIMARY KEY,
+                        NAME VARCHAR (20) NOT NULL,
+                        SAL DECIMAL(6,2) NOT NULL,
+                        AGE INT NOT NULL);
+                        
+INSERT INTO DANISH_IPL VALUES
+                             (1, 'MAHI', 12, 40),
+                             (2, 'KOHLI', 14, 33),
+                             (3, 'DK', 6.25, 33),
+                             (4, 'WARNER', 6.75, 33),
+                             (5, 'RAHUL', 16, 29),
+                             (6, 'PANDYA', 14, 27);
+                             
+SELECT * FROM DANISH_IPL;
+
+-------------------------------------------DECODE-------------------------------------------------------------------
+--SYNTAX--DECODE (column  name,  number 1 to be searched, result 1 to be updated, number 2 to be searched, result 2 to be updated   , number 3 to be searched, result 3 to be updated      . . . . . . . . .    number n to be searched, result n to be updated , default)   
+
+
+SELECT NAME, SID, SAL,   
+DECODE (SID, 1, 1.5*SAL,   
+             2, 4*SAL,   
+             3, 9*SAL,   
+             4, 10.25*SAL, SAL) AS "REVISED SALARY"   
+FROM DANISH_IPL;
+
+CREATE OR REPLACE VIEW DANISH_IPL_REVISED_SALARY AS
+SELECT NAME, SID, SAL,   
+DECODE (SID, 1, 1.5*SAL,   
+             2, 4*SAL,   
+             3, 9*SAL,   
+             4, 10.25*SAL, SAL) AS "REVISED SALARY"   
+FROM DANISH_IPL;
+
+SELECT * FROM DANISH_IPL_REVISED_SALARY;
+
+SELECT Sid, name, Sal, Age,   
+DECODE (sid, 1, 2 * sid * sal,   
+             2, 3 * sid * sal,   
+             3, 5 * sid * sal,   
+             4, 10 * sid * sal,   
+             5, 12 * sid * sal,   
+             6, 15 * sid * sal, sal/2) AS  "UPGRADED SALARY"   
+FROM DANISH_IPL; 

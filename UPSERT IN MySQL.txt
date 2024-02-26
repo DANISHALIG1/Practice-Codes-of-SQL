@@ -1,0 +1,49 @@
+USE DANISH_DATABASE;
+
+DROP TABLE IF EXISTS DM_Student;
+CREATE TABLE DM_Student
+                   ( Stud_ID int AUTO_INCREMENT PRIMARY KEY,     
+					 Name varchar(45) DEFAULT NULL,   
+					 Email varchar(45) NOT NULL UNIQUE,   
+					 City varchar(25) DEFAULT NULL );  
+
+INSERT INTO DM_Student (Stud_ID, Name, Email, City)    
+VALUES (1,'Stephen', 'stephen@javatpoint.com', 'Texas'),    
+       (2, 'Joseph', 'Joseph@javatpoint.com', 'Alaska'),    
+       (3, 'Peter', 'Peter@javatpoint.com', 'California');  
+       
+SELECT * FROM DM_Student;
+
+------------------------------ INSERT IGNORE --------------------------------------------------------------
+
+INSERT INTO DM_Student(Stud_ID, Name, Email, City)    
+VALUES (4,'Donald', 'donald@javatpoint.com', 'New York'),    
+       (5, 'Joseph', 'Joseph@javatpoint.com', 'Chicago');   
+       -- THIS WILL GIVE ERROR AS EMAIL ID IS UINQE SO IN THIS CASE WE USE INSERT IGNORE COMMAND
+       
+INSERT IGNORE INTO DM_Student(Stud_ID, Name, Email, City)    
+VALUES (4,'Donald', 'donald@javatpoint.com', 'New York'),    
+       (5, 'Joseph', 'Joseph@javatpoint.com', 'Chicago');  
+       
+SELECT * FROM DM_Student;
+       
+------------------------------ INSERT REPLACE --------------------------------------------------------------
+
+REPLACE INTO DM_Student(Stud_ID, Name, Email, City)   
+VALUES(2, 'Joseph', 'joseph@javatpoint.com', 'Los Angeles');   
+
+SELECT * FROM DM_Student;
+SELECT * FROM DM_Student WHERE Stud_ID=2;
+
+------------------------------ INSERT ON DUPLICATE KEY UPDATE -----------------------------------------------
+-- WHEN YOU WANTS TO UPDATE DATA 
+
+INSERT INTO DM_Student (Stud_ID, Name, Email, City)    
+VALUES (5,'John', 'john@javatpoint.com', 'New York');  
+-- lets update the data now by using INSERT ON DUPLICATE KEY UPDATE 
+
+INSERT INTO DM_Student (Stud_ID, Name, Email, City)    
+VALUES (5, 'John', 'john@javatpoint.com', 'New York')   
+ON DUPLICATE KEY UPDATE City = 'California';
+
+SELECT * FROM DM_Student;
